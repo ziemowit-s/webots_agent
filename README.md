@@ -43,3 +43,5 @@ export PYTHONPATH="$WEBOTS_HOME/lib/controller/python36:$PYTHONPATH"
     * open Webots window and click run
   * This procedure run the code to the first robot which has "<extern>" param
   * If you have more robots - go to Webots docs and find how to run them
+
+* key file controllers/slave_controller/slave_controller.py
