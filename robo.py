@@ -46,13 +46,25 @@ class RobotSim(Robot):
         raw = cam.getImageArray()
         if raw is None or np.sum(raw) == 0:
             raise ConnectionError("Camera array is empty. Pause Webots simulation and click Reload World button.")
+
         img_np = np.array(raw, dtype="float") / 255
+        img_np = img_np.transpose([1, 0, 2])
         return img_np
 
-    def show_cv2_cam(self, name):
+    def show_cv2_cam(self, name, shape=None):
+        """
+        :param name:
+        :param shape:
+            tuple of shape (width, height). If None - default shape will be taken.
+        :return:
+        """
         img = self.read_cam(name)
-        img = cv2.resize(img, (200, 200))
-        cv2.imshow('frame', img)
+        if shape is None:
+            shape = img.shape[:2]
+
+        img = cv2.resize(img, shape)
+        cv2.imshow(name, img)
+
         if cv2.waitKey(1) & 0xFF == ord('q'):
             cv2.destroyAllWindows()
             raise GeneratorExit("OpenCV image show stopped.")
