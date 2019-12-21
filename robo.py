@@ -4,26 +4,28 @@ import numpy as np
 from controller import Robot
 
 
-class Robo:
+class RobotSim(Robot):
     def __init__(self, time_step=None, max_speed=6.28, camera=None, camera_interval=1):
-        self.robot = Robot()
+        super().__init__()
         self.max_speed = max_speed
 
         self.time_step = time_step
         if time_step is None:
-            self.time_step = int(self.robot.getBasicTimeStep())
+            self.time_step = int(self.getBasicTimeStep())
 
         self.cameras = {}
         if camera:
             if isinstance(camera, str):
                 camera = [camera]
             for c in camera:
-                cam = self.robot.getCamera(c)
+                cam = self.getCamera(c)
                 cam.enable(camera_interval)
                 self.cameras[c] = cam
 
-    def step(self):
-        result = self.robot.step(self.time_step)
+    def step(self, duration=None):
+        if duration is None:
+            duration = self.time_step
+        result = super().step(duration)
         if result == -1:
             raise EnvironmentError("Robot error, next step failed.")
 

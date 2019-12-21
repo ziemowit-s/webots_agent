@@ -1,6 +1,6 @@
-from robo import Robo
+from robo import RobotSim
 
-robo = Robo(camera="camera0 camera1".split())
+robo = RobotSim(camera="camera0 camera1".split())
 while True:
     robo.step()
     robo.show_cv2_cam('camera0')
