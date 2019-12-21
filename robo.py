@@ -1,6 +1,8 @@
+import io
+
 import cv2
 import numpy as np
-
+from PIL import Image
 from controller import Robot
 
 
@@ -42,14 +44,20 @@ class RobotSim(Robot):
         return result
 
     def read_cam(self, name):
+        """
+        byte raw array from cam.getImage() tranfromed with PIL gives much higher performance than cam.getImageArray()
+        :param name:
+        :return:
+        """
         cam = self.cameras[name]
-        raw = cam.getImageArray()
-        if raw is None or np.sum(raw) == 0:
+        raw = cam.getImage()
+        if raw is None:
             raise ConnectionError("Camera array is empty. Pause Webots simulation and click Reload World button.")
 
-        img_np = np.array(raw, dtype="float") / 255
-        img_np = img_np.transpose([1, 0, 2])
-        return img_np
+        shape = (cam.getWidth(), cam.getHeight())
+        img = Image.frombytes("RGBA", shape, raw)
+        img_np = np.array(img)
+        return img_np/255
 
     def show_cv2_cam(self, name, shape=None):
         """
