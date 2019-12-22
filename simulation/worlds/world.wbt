@@ -1,0 +1,36 @@
+#VRML_SIM R2020a utf8
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.23733945659029915 0.9349319069896413 0.263765637712978 1.7194734826667848
+  position 0.9023789340423128 0.5394185074835968 0.016232543637918262
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+}
+DEF MASTER E-puck {
+  hidden position_0_0 4.61316227715562
+  hidden position_0_1 5.069522533690042
+  hidden rotation_1 -1 0 0 4.61316227715562
+  hidden rotation_2 -1 0 0 5.069522533690042
+  translation -0.0034617 -6.43561e-05 0.29933
+  rotation -0.0014344792365811683 0.9999987933215249 -0.0005963428663190495 0.16079412214945923
+  name "master"
+}
+DEF SLAVE E-puck {
+  hidden position_0_0 4.61316227715562
+  hidden position_0_1 5.069522533690042
+  hidden rotation_1 -1 0 0 4.61316227715562
+  hidden rotation_2 -1 0 0 5.069522533690042
+  translation 0.0285702 -6.43561e-05 0.427158
+  rotation -0.0014344792365811683 0.9999987933215249 -0.0005963428663190495 0.16079412214945923
+  name "slave"
+  controller "<extern>"
+  supervisor TRUE
+  synchronization FALSE
+  camera_width 640
+  camera_height 480
+}
