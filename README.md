@@ -11,7 +11,7 @@ export LD_LIBRARY_PATH="$WEBOTS_HOME/lib/controller"
 export PYTHONPATH="$WEBOTS_HOME/lib/controller/python36:$PYTHONPATH"
 ```
 
-# Run
+# How to...
 * If you want to deploy code from PyCharm
   * run ide from console write `pycharm-profesional` or `pycharm-community `in the console
   * this will use all environmental variable from your .bashrc
@@ -44,4 +44,7 @@ export PYTHONPATH="$WEBOTS_HOME/lib/controller/python36:$PYTHONPATH"
   * This procedure run the code to the first robot which has "<extern>" param
   * If you have more robots - go to Webots docs and find how to run them
 
-* key file controllers/slave_controller/slave_controller.py
+# Run
+```python
+python slave_controller.py
+```
