@@ -18,7 +18,7 @@ class BrianLIFAgent(Agent):
         self.hid = NeuronGroup(100, model=neuron, method='euler', threshold='v>0.1', reset='v=0', refractory=10 * ms)
         self.output = NeuronGroup(4, model=neuron, method='euler', threshold='v>0.1', reset='v=0', refractory=10 * ms)
 
-        s1 = Synapses(self.inp, input, on_pre='v_post += 1.0', delay=1 * ms)
+        s1 = Synapses(self.inp, self.inp, on_pre='v_post += 1.0', delay=1 * ms)
         s1.connect(condition='i!=j', p=0.2)
 
         s2 = Synapses(self.hid, self.hid, on_pre='v_post += 1.0', delay=1 * ms)
@@ -36,8 +36,11 @@ class BrianLIFAgent(Agent):
         self.state = StateMonitor(self.output, variables='v', record=True)
         self.spike = SpikeMonitor(self.output)
 
+        self.network = Network(self.inp, self.hid, self.output, s1, s2, s3, input_hidden, hidden_output, self.state, self.spike)
+        self.network.store()
+
         # init run
-        run(10 * ms)
+        self.network.run(10 * ms)
 
         print('network setup done')
 
@@ -50,7 +53,7 @@ class BrianLIFAgent(Agent):
         :param reward:
         :return:
         """
-        if observation:
+        if observation is not None:
             self.inp[:].v = observation
         run(duration*ms)
-        return self.output[:]
+        return np.array(self.output[:].v)

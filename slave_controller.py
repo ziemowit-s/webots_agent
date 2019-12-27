@@ -34,8 +34,6 @@ if __name__ == '__main__':
     leftMotor = robo.getMotor('left wheel motor')
     rightMotor = robo.getMotor('right wheel motor')
 
-    print('network setup done')
-
     while True:
         robo.step()
         # print(robo.get_reward())
