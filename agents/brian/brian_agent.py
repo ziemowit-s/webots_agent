@@ -7,27 +7,28 @@ from brian2 import *
 from agents.brian.handlers.event_handler import EventHandler
 
 
-class BrianAgent(Agent):
+class BrianAgent(Agent, Network):
 
     def __init__(self):
         Agent.__init__(self)
-        self.network = Network()
+        Network.__init__(self)
         self.spike_monitors = {}
         self.spike_handlers = {}
 
     def build(self):
+        start_scope()
         self._make_network()
-        self.network.store()
+        self.store()
 
     @abc.abstractmethod
     def _make_network(self):
         raise NotImplementedError
 
-    def init_network(self, duration=10 * ms):
-        self.network.run(duration)
+    def init_network(self, duration=10 * ms, namespace=None):
+        self.run(duration, namespace=namespace)
         print('network init done')
 
-    def step(self, duration=1*ms, observation=None, reward=None):
+    def step(self, duration=1*ms, observation=None, reward=None, namespace=None):
         """
 
         :param duration:
@@ -38,7 +39,7 @@ class BrianAgent(Agent):
         """
         if observation is not None:
             self.inp[:].v = observation
-        self.network.run(duration)
+        self.run(duration, namespace=namespace)
         self._exec_spike_handlers()
         return np.array(self.output[:].v)
 
@@ -60,12 +61,12 @@ class BrianAgent(Agent):
                 values = dict(zip(list(m.it[0]), list(m.it[1])))  # dict[neuron_id] = time_of_occurence
                 handler.exec(values=values)
 
-                self.network.remove(m)
+                self.remove(m)
                 del self.spike_monitors[layer.name]
                 self._add_spike_monitor(layer)
 
     def _add_spike_monitor(self, layer: NeuronGroup):
         if layer.name not in self.spike_monitors:
             m = SpikeMonitor(layer)
-            self.network.add(m)
+            self.add(m)
             self.spike_monitors[layer.name] = m
