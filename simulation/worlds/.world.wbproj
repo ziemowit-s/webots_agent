@@ -8,5 +8,5 @@ selectionDisabled: 0
 viewpointLocked: 0
 orthographicViewHeight: 1
 textFiles: -1
-renderingDevicePerspectives: slave:camera;0;0.68125;0;0
 renderingDevicePerspectives: master:camera;0;1;0;0
+renderingDevicePerspectives: slave:camera;0;0.68125;0;0

@@ -1,15 +1,20 @@
 import abc
-import io
-
 import cv2
 import numpy as np
 from PIL import Image
-from controller import Robot, Supervisor
+try:
+    from controller import Supervisor
+except ImportError:
+    raise ImportError('Cannot load Webots C++ libraries.\n'
+                      '  - Create $WEBOTS_HOME and add LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$WEBOTS_HOME/lib/controller."\n'
+                      '  - Check if $WEBOTS_HOME and $LD_LIBRARY_PATH are accessible for the Python script.')
 
 
 class RobotSim(Supervisor):
-    def __init__(self, time_step=None, max_speed=6.28, camera=None, camera_interval=1):
+    def __init__(self, time_step=None, max_speed=6.28, camera=None, camera_interval=1,
+                 simulation_made=Supervisor.SIMULATION_MODE_PAUSE):
         super().__init__()
+        self.simulationSetMode(simulation_made)
         self.max_speed = max_speed
 
         self.time_step = time_step
