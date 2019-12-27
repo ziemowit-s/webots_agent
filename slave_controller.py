@@ -1,5 +1,5 @@
 import numpy as np
-
+from agents.brian_lif_agent import BrianLIFAgent
 from robo import RobotSim
 
 
@@ -26,9 +26,36 @@ class DistanceRewardRobotSim(RobotSim):
 
 
 if __name__ == '__main__':
+    MAX_SPEED = 6.28
+
+    nn = BrianLIFAgent()
     robo = DistanceRewardRobotSim(camera="camera")
+
+    leftMotor = robo.getMotor('left wheel motor')
+    rightMotor = robo.getMotor('right wheel motor')
+
+    print('network setup done')
 
     while True:
         robo.step()
-        print(robo.get_reward())
-        robo.show_cv2_cam('camera', shape=(800, 600))
+        # print(robo.get_reward())
+        # robo.show_cv2_cam('camera', shape=(50, 50))
+
+        cam = robo.read_cam(name="camera", shape=(50, 50))
+        gray_cam = np.sum(cam[:, :, :3], axis=-1) / 3
+        gray_cam_flatten = np.reshape(gray_cam, newshape=gray_cam.shape[0] * gray_cam.shape[1])
+
+        moves = nn.step(duration=1, observation=gray_cam_flatten)
+        print(moves)
+
+        left_forward = moves[0]
+        left_back = moves[1]
+        right_forward = moves[2]
+        right_back = moves[3]
+
+        leftMotor = robo.getMotor('left wheel motor')
+        rightMotor = robo.getMotor('right wheel motor')
+
+        # set the target position of the motors
+        leftMotor.setVelocity((left_forward-left_back) * MAX_SPEED)
+        rightMotor.setVelocity((right_forward-right_back) * MAX_SPEED)

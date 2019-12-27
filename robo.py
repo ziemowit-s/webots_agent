@@ -32,22 +32,26 @@ class RobotSim(Supervisor):
         if result == -1:
             raise EnvironmentError("Robot error, next step failed.")
 
-    def read_cams(self):
+    def read_cams(self, shape=None):
         """
         :param name:
             if None - read first cam
+        :param shape:
+            tuple of shape (width, height). If None - default shape will be taken.
         :return:
         """
         result = []
         for name in self.cameras.keys():
-            img_np = self.read_cam(name)
+            img_np = self.read_cam(name, shape)
             result.append(img_np)
         return result
 
-    def read_cam(self, name):
+    def read_cam(self, name, shape=None):
         """
         byte raw array from cam.getImage() tranfromed with PIL gives much higher performance than cam.getImageArray()
         :param name:
+        :param shape:
+            tuple of shape (width, height). If None - default shape will be taken.
         :return:
         """
         cam = self.cameras[name]
@@ -55,10 +59,13 @@ class RobotSim(Supervisor):
         if raw is None:
             raise ConnectionError("Camera array is empty. Pause Webots simulation and click Reload World button.")
 
-        shape = (cam.getWidth(), cam.getHeight())
-        img = Image.frombytes("RGBA", shape, raw)
-        img_np = np.array(img)
-        return img_np/255
+        original_shape = (cam.getWidth(), cam.getHeight())
+        img = Image.frombytes("RGBA", original_shape, raw)
+        img_np = np.array(img)/255
+
+        if shape:
+            img_np = cv2.resize(img_np, shape)
+        return img_np
 
     def show_cv2_cam(self, name, shape=None):
         """
@@ -67,11 +74,7 @@ class RobotSim(Supervisor):
             tuple of shape (width, height). If None - default shape will be taken.
         :return:
         """
-        img = self.read_cam(name)
-        if shape is None:
-            shape = img.shape[:2]
-
-        img = cv2.resize(img, shape)
+        img = self.read_cam(name, shape)
         cv2.imshow(name, img)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
