@@ -1,5 +1,5 @@
 import numpy as np
-from agents.brian_lif_agent import BrianLIFAgent
+from agents.brian.brian_lif_agent import BrianLIFAgent
 from robo import RobotSim
 
 
