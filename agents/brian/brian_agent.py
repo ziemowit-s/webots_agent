@@ -9,11 +9,12 @@ from agents.brian.handlers.event_handler import EventHandler
 
 class BrianAgent(Agent, Network):
 
-    def __init__(self):
+    def __init__(self, namespace=None):
         Agent.__init__(self)
         Network.__init__(self)
         self.spike_monitors = {}
         self.spike_handlers = {}
+        self.namespace = namespace
 
     def build(self):
         start_scope()
@@ -25,23 +26,21 @@ class BrianAgent(Agent, Network):
         raise NotImplementedError
 
     def init_network(self, duration=10 * ms, namespace=None):
-        self.run(duration, namespace=namespace)
+        self._run_agent(duration, namespace=namespace)
         print('network init done')
 
-    def step(self, duration=1*ms, observation=None, reward=None, namespace=None):
-        """
+    def _run_agent(self, duration=10*ms, namespace=None):
+        if namespace is None:
+            namespace = self.namespace
+        self.run(duration, namespace=namespace)
 
-        :param duration:
-            in ms
-        :param observation:
-        :param reward:
-        :return:
-        """
+    def step(self, duration=1*ms, observation=None, reward=None, namespace=None):
         if observation is not None:
             self.inp[:].v = observation
-        self.run(duration, namespace=namespace)
+
+        self._run_agent(duration, namespace=namespace)
+
         self._exec_spike_handlers()
-        return np.array(self.output[:].v)
 
     def add_spike_handler(self, layer: NeuronGroup, handler: EventHandler):
         """
@@ -58,8 +57,7 @@ class BrianAgent(Agent, Network):
             m = self.spike_monitors[name]
 
             if len(m.t[:]) > 0:  # if spike(s) occured
-                values = dict(zip(list(m.it[0]), list(m.it[1])))  # dict[neuron_id] = time_of_occurence
-                handler.exec(values=values)
+                handler.exec(spike_monitor=m)
 
                 self.remove(m)
                 del self.spike_monitors[layer.name]

@@ -6,8 +6,8 @@ from agents.brian.handlers.spike_event_handler import SpikeEventHandler
 
 class BrianLIFAgent(BrianAgent):
 
-    def __init__(self, input_size, hidden_size, output_size):
-        BrianAgent.__init__(self)
+    def __init__(self, input_size, hidden_size, output_size, namespace=None):
+        BrianAgent.__init__(self, namespace)
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
@@ -48,7 +48,7 @@ class BrianLIFAgent(BrianAgent):
 
 
 if __name__ == '__main__':
-    nn = BrianLIFAgent(input_size=10, hidden_size=10, output_size=2)
+    nn = BrianLIFAgent(input_size=10, hidden_size=10, output_size=2, namespace={'tau': 10*ms})
     nn.build()
 
     state = StateMonitor(nn.output, variables='v', record=True)
@@ -57,6 +57,6 @@ if __name__ == '__main__':
     handler = SpikeEventHandler(state=state, fig=None)
     nn.add_spike_handler(nn.output, handler=handler)
 
-    nn.init_network(duration=10*ms, namespace={'tau': 10*ms})
+    nn.init_network(duration=10*ms)
     for i in range(1000):
-        nn.step(duration=1*ms, observation=np.random.random_sample(10), namespace={'tau': 10*ms})
+        nn.step(duration=1*ms, observation=np.random.random_sample(10))

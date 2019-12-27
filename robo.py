@@ -66,11 +66,12 @@ class RobotSim(Supervisor):
 
         original_shape = (cam.getWidth(), cam.getHeight())
         img = Image.frombytes("RGBA", original_shape, raw)
-        img_np = np.array(img)/255
+        img = cv2.cvtColor(np.array(img), cv2.COLOR_BGRA2GRAY)
+        img = np.array(img)
 
         if shape:
-            img_np = cv2.resize(img_np, shape)
-        return img_np
+            img = cv2.resize(img, shape)
+        return img
 
     def show_cv2_cam(self, name, shape=None):
         """

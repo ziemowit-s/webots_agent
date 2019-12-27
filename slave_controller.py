@@ -1,5 +1,7 @@
+import cv2
 import numpy as np
-from agents.brian.brian_lif_agent import BrianLIFAgent
+from agents.brian.brian_lif_agent import BrianLIFAgent, StateMonitor, ms
+from agents.brian.handlers.spike_event_handler import SpikeEventHandler
 from robo import RobotSim
 
 
@@ -26,34 +28,70 @@ class DistanceRewardRobotSim(RobotSim):
 
 
 if __name__ == '__main__':
+    TIMESTEP = 50
+
+    # Define NN
+    nn = BrianLIFAgent(input_size=2500, hidden_size=100, output_size=4, namespace={'tau': 10*ms})
+    nn.build()
+    handler = SpikeEventHandler(fig=None, output=[])
+    nn.add_spike_handler(nn.output, handler=handler)
+    nn.init_network(duration=TIMESTEP*ms)
+
+    # Define Robot
     MAX_SPEED = 6.28
-
-    nn = BrianLIFAgent()
     robo = DistanceRewardRobotSim(camera="camera")
-
     leftMotor = robo.getMotor('left wheel motor')
     rightMotor = robo.getMotor('right wheel motor')
+    leftMotor.setPosition(float("inf"))
+    rightMotor.setPosition(float("inf"))
+    leftMotor.setVelocity(0)
+    rightMotor.setVelocity(0)
 
+    left_forward = 0
+    left_back = 0
+    right_forward = 0
+    right_back = 0
+    left_pos = None
+    right_pos = None
+
+    # Main loop
     while True:
-        robo.step()
-        # print(robo.get_reward())
-        # robo.show_cv2_cam('camera', shape=(50, 50))
+
+        # Robot step
+        robo.step(duration=TIMESTEP)
+        #print(robo.get_reward())
 
         cam = robo.read_cam(name="camera", shape=(50, 50))
-        gray_cam = np.sum(cam[:, :, :3], axis=-1) / 3
-        gray_cam_flatten = np.reshape(gray_cam, newshape=gray_cam.shape[0] * gray_cam.shape[1])
+        cam_flatten = np.reshape(cam, newshape=cam.shape[0] * cam.shape[1])
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            cv2.destroyAllWindows()
+            raise GeneratorExit("OpenCV image show stopped.")
 
-        moves = nn.step(duration=1, observation=gray_cam_flatten)
-        print(moves)
+        # NN step
+        nn.step(duration=TIMESTEP * ms, observation=cam_flatten)
+        moves = handler.pop()
 
-        left_forward = moves[0]
-        left_back = moves[1]
-        right_forward = moves[2]
-        right_back = moves[3]
+        # Robot not move
+        if len(moves) == 0:
+            left_pos = 0
+            right_pos = 0
 
-        leftMotor = robo.getMotor('left wheel motor')
-        rightMotor = robo.getMotor('right wheel motor')
+        # Robot move
+        else:
+            for m in moves:
+                if m == 0:
+                    left_forward = 1
+                elif m == 1:
+                    left_back = 1
+                elif m == 2:
+                    right_forward = 1
+                elif m == 3:
+                    right_back = 1
+            left_pos = left_forward - left_back
+            right_pos = right_forward - right_back
 
-        # set the target position of the motors
-        leftMotor.setVelocity((left_forward-left_back) * MAX_SPEED)
-        rightMotor.setVelocity((right_forward-right_back) * MAX_SPEED)
+            leftMotor.setVelocity(MAX_SPEED*left_pos)
+            rightMotor.setVelocity(MAX_SPEED*right_pos)
+            robo.step(duration=TIMESTEP)
+            leftMotor.setVelocity(0)
+            rightMotor.setVelocity(0)
