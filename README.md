@@ -44,7 +44,7 @@ You can load robot's controller directly to Webots, but probably your conda env 
         * double click on the robot list element
         * click "controller"
         * click Select
-        * choose "<Extern>"
+        * choose \<extern>
   2. In PyCharm
         * run ide from console write `pycharm-profesional` or `pycharm-community `in the console.
           This will use all environmental variable from your .bashrc
