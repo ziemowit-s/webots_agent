@@ -1,7 +1,7 @@
 Webots agent for Renforcement Learning
 
 # Prerequisites
-* Install spiking_neural_agents library:
+* Install spikeagents library from the spiking_neural_agents GitHub repo:
 ```bash
 pip install git+https://github.com/ziemowit-s/spiking_neural_agents.git
 ```
