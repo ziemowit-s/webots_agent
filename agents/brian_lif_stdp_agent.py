@@ -1,21 +1,15 @@
 from brian2 import *
-
-from agents.brian.brian_agent import BrianAgent
-from agents.brian.handlers.spike_event_handler import SpikeEventHandler
-from agents.brian.neuron_utils import GatedNeuron
-from agents.brian.synapse_utils import STDPSynapse
+from spikeagents.brian.brian_agent import BrianAgent
+from spikeagents.brian.handlers.spike_event_handler import SpikeEventHandler
+from spikeagents.brian.utils import plot_states
 
 
 class BrianLIFAgent(BrianAgent):
 
-    def __init__(self, input_size, hidden_size, output_size, namespace: dict = None):
-        self.neuron_model = GatedNeuron()
-        self.synapse_model = STDPSynapse()
-        if namespace is None:
-            namespace = {}
+    def __init__(self, neuron_model, synapse_model, input_size, hidden_size, output_size, namespace: dict = None):
         namespace.update(self.neuron_model.namespace)
         namespace.update(self.synapse_model.namespace)
-        BrianAgent.__init__(self, namespace=namespace)
+        BrianAgent.__init__(self, neuron_model=neuron_model, synapse_model=synapse_model, namespace=namespace)
 
         self.input_size = input_size
         self.hidden_size = hidden_size
@@ -39,19 +33,36 @@ class BrianLIFAgent(BrianAgent):
         input_output.w = 'rand() * gmax'
         self.add(input_output)
 
-        self.store()
-
 
 if __name__ == '__main__':
-    nn = BrianLIFAgent(input_size=10, hidden_size=10, output_size=2, namespace={'tau': 10 * ms})
+    nn = BrianLIFAgent(neuron_model=GatedNeuron(), synapse_model=STDPSynapse(),
+                       input_size=10, hidden_size=10, output_size=2, namespace={'tau': 10 * ms})
     nn.build()
+    state_in = StateMonitor(nn.inp, variables='v', record=True)
+    nn.add(state_in)
+    state_out = StateMonitor(nn.output, variables='v', record=True)
+    nn.add(state_out)
 
-    state = StateMonitor(nn.output, variables='v', record=True)
-    nn.add(state)
+    fig_in = None
+    fig_out = None
 
-    handler = SpikeEventHandler(state=state, fig=None)
+    handler = SpikeEventHandler(output=[])
     nn.add_spike_handler(nn.output, handler=handler)
 
     nn.init_network(duration=10 * ms)
+
+    # Main loop
     for i in range(1000):
-        nn.step(duration=1 * ms, observation=np.random.random_sample(10))
+        nn.step(duration=50 * ms, observation=np.random.random_sample(10))
+
+        fig_in = plot_states(state_in, "input states", fig=fig_in)
+        fig_out = plot_states(state_out, "outputs states", fig=fig_out)
+        moves = handler.pop()
+
+        nn.remove(state_in)
+        nn.remove(state_out)
+
+        state_in = StateMonitor(nn.inp, variables='v', record=True)
+        nn.add(state_in)
+        state_out = StateMonitor(nn.output, variables='v', record=True)
+        nn.add(state_out)
