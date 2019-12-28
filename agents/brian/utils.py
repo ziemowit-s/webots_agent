@@ -27,7 +27,7 @@ def plot_states(monitor, title=None, fig=None, pause=1):
         ax.set_title(title)
 
     for i, v in enumerate(monitor.v):
-        ax.plot(monitor.t / ms, v, label=i+1)
+        ax.plot(monitor.t / ms, v/mV, label=i+1)
         ax.set_xlabel("time (ms)")
         ax.set_ylabel("voltage (mV)")
     ax.legend()

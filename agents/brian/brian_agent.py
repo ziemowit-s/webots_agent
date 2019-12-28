@@ -18,11 +18,16 @@ class BrianAgent(Agent, Network):
 
     def build(self):
         start_scope()
-        self._make_network()
+        self._make_layers()
+        self._make_synapses()
         self.store()
 
     @abc.abstractmethod
-    def _make_network(self):
+    def _make_layers(self):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def _make_synapses(self):
         raise NotImplementedError
 
     def init_network(self, duration=10 * ms, namespace=None):
@@ -36,7 +41,7 @@ class BrianAgent(Agent, Network):
 
     def step(self, duration=1*ms, observation=None, reward=None, namespace=None):
         if observation is not None:
-            self.inp[:].v = observation
+            self.inp[:].v += observation * 100.0 * mV
 
         self._run_agent(duration, namespace=namespace)
 

@@ -1,7 +1,10 @@
 import cv2
 import numpy as np
-from agents.brian.brian_lif_agent import BrianLIFAgent, StateMonitor, ms
+from brian2 import StateMonitor
+
+from agents.brian.brian_lif_agent import BrianLIFAgent, ms
 from agents.brian.handlers.spike_event_handler import SpikeEventHandler
+from agents.brian.utils import plot_states
 from robo import RobotSim
 
 
@@ -28,13 +31,22 @@ class DistanceRewardRobotSim(RobotSim):
 
 
 if __name__ == '__main__':
-    TIMESTEP = 50
+    TIMESTEP = 10
 
     # Define NN
-    nn = BrianLIFAgent(input_size=2500, hidden_size=100, output_size=4, namespace={'tau': 10*ms})
+    nn = BrianLIFAgent(input_size=100, hidden_size=10, output_size=4, namespace={'tau': 10*ms})
     nn.build()
-    handler = SpikeEventHandler(fig=None, output=[])
+    state_in = StateMonitor(nn.inp, variables='v', record=True)
+    nn.add(state_in)
+    state_out = StateMonitor(nn.output, variables='v', record=True)
+    nn.add(state_out)
+
+    fig_in = None
+    fig_out = None
+
+    handler = SpikeEventHandler(output=[])
     nn.add_spike_handler(nn.output, handler=handler)
+
     nn.init_network(duration=TIMESTEP*ms)
 
     # Define Robot
@@ -55,21 +67,30 @@ if __name__ == '__main__':
     right_pos = None
 
     # Main loop
+    step = 0
     while True:
-
+        print('step:', step)
+        step += 1
         # Robot step
         robo.step(duration=TIMESTEP)
         #print(robo.get_reward())
 
-        cam = robo.read_cam(name="camera", shape=(50, 50))
+        cam = robo.read_cam(name="camera", shape=(10, 10))
         cam_flatten = np.reshape(cam, newshape=cam.shape[0] * cam.shape[1])
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            cv2.destroyAllWindows()
-            raise GeneratorExit("OpenCV image show stopped.")
 
         # NN step
         nn.step(duration=TIMESTEP * ms, observation=cam_flatten)
+
+        fig_in = plot_states(state_in, "input states", fig=fig_in)
+        fig_out = plot_states(state_out, "outputs states", fig=fig_out)
         moves = handler.pop()
+
+        nn.remove(state_in)
+        nn.remove(state_out)
+        state_in = StateMonitor(nn.inp, variables='v', record=True)
+        nn.add(state_in)
+        state_out = StateMonitor(nn.output, variables='v', record=True)
+        nn.add(state_out)
 
         # Robot not move
         if len(moves) == 0:

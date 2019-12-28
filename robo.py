@@ -71,7 +71,7 @@ class RobotSim(Supervisor):
 
         if shape:
             img = cv2.resize(img, shape)
-        return img
+        return img/255
 
     def show_cv2_cam(self, name, shape=None):
         """
